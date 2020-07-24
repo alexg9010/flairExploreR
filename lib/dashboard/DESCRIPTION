@@ -1,0 +1,14 @@
+Package: flairExploreR
+Title: Explore Alternative Splicing Results from FLAIR
+Version: 0.0.0.9000
+Authors@R: 
+    person(given = "Alexander",
+           family = "Blume",
+           role = c("aut", "cre"),
+           email = "alexander.blume@mdc-berlin.de"
+           )
+Description: Explore Alternative Splicing Results generated 
+with FLAIR (https: //github.com/BrooksLabUCSC/flair) pipeline.
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true

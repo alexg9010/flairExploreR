@@ -1,0 +1,3 @@
+[submodule "lib/flair"]
+	path = lib/flair
+	url = https://github.com/BrooksLabUCSC/flair

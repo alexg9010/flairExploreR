@@ -1,0 +1,312 @@
+---
+title: "Exploring Alternative Splicing with Long Reads"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+runtime: shiny
+---
+
+```{r global, include=FALSE}
+library(flexdashboard)
+library(data.table)
+setDTthreads(8)
+library(ggplot2)
+library(shiny)
+projectDir="/home/agosdsc/projects/mrg1_nanopore/as_detection_flair/"
+dataDir <- "/data/local/agosdsc/projects/mrg1_nanopore/flair_analyzed/pooled_hom_mrg1_v3/"
+outDir=file.path(dataDir,"diffSplice_noShortReads/")
+gtfFile_Ref="/fast/AG_Tursun/Base/Genome_Annotation/ce11/Ensembl/Caenorhabditis_elegans.WBcel235.97.gtf"
+gtfFile <- file.path(dataDir,"collapse","all_samples_flair.isoforms.gtf")
+
+source(file.path("./","scripts","dashboard_funcs.R"))
+if(!file.exists(file.path(dataDir,"preppedData.RDS"))) {
+    
+    tx_prod_full_file <- file.path(dataDir,"productivity","productivity.bed")
+    diffSpliceFolder <- file.path(dataDir,"diffSplice_noShortReads")
+    diffExpFolder <- file.path(dataDir,"diffExp_noShortReads")
+    
+    preppedData <- prepData(productivityBedFile = tx_prod_full, 
+                         flairGtfFile = gtfFile, 
+                         ensemblGtfFile = gtfFile_Ref, 
+                         diffSpliceFolder = diffSpliceFolder,
+                         diffExpFolder = diffExpFolder,
+                         dataDir = dataDir
+                         )
+} else {
+    preppedData <- readRDS(file.path(dataDir,"preppedData.RDS"))
+}
+
+# attach(preppedData)
+```
+
+
+Sidebar {.sidebar data-width=150}
+=====================================
+
+#### Create a figure for the selected Gene:
+
+```{r}
+selectable <- with(preppedData, 
+                  productivity[gene_exp[!is.na(gene_name),geneID], ,on = "gene_id"][
+                    productivity %in% c("PRO","PTC"),unique(gene_id)])
+
+selectInput("geneID", label = "Gene for Summary Figures:",
+            choices = sort(preppedData$gene2symbol[selectable,gene_name,on = "gene_id"]), 
+            selected = "che-13",
+            # size = 5,
+            multiple = FALSE,
+            selectize = TRUE)
+```
+
+<!-- #### Download the figure: -->
+
+<!-- ```{r} -->
+<!-- # downloadObjUI(id = "download")) -->
+<!-- downloadButton(outputId = "download", label = "Download the summary plot.") -->
+<!-- #  -->
+<!-- output$download <- -->
+<!--   downloadHandler( -->
+<!--     filename = function() { paste(geneSelection()$geneID, '.png', sep='') }, -->
+<!--     content = function(file) { -->
+<!--       # geneSelection()$p_summary -->
+
+<!--       ggsave(filename = file, plot = plotSummary(), device = "png") -->
+<!--     } -->
+<!-- ) -->
+<!-- #  -->
+<!-- # # checkboxInput(inputId, label, value = FALSE, width = NULL) -->
+<!-- ``` -->
+
+#### Filter tables for Genes of Interest
+
+```{r}
+# Filter tables for Genes of Interest
+selectInput("selectedGeneID", label = "Filter tables for Genes of Interest:",
+            choices = sort(preppedData$gene2symbol[selectable,gene_name,on = "gene_id"]), 
+            selected = NULL,
+            multiple = TRUE,
+            selectize = TRUE)
+
+# checkboxInput(inputId, label, value = FALSE, width = NULL)
+```
+
+Summarized Figures (Panel View)
+=======================================================================
+
+```{r define_plots, include=FALSE}
+
+geneSelection <- reactive({
+    
+    geneID <- input$geneID
+    
+    if(!geneID %in% preppedData$gene2symbol$gene_id) {
+        geneID <- preppedData$gene2symbol[gene_name == geneID, gene_id]
+    } 
+        
+    geneName <- preppedData$gene2symbol[geneID, gene_name]
+    
+    txList <- extractTXFeatures(productivity = preppedData$productivity,
+                                    gtf = preppedData$gtf,
+                                    geneID = geneID)
+    
+    p_model <- plotGeneModel(txList = txList,
+                             asEvents = preppedData$asEvents,
+                             geneID = geneID,
+                             tx2gene = preppedData$tx2gene)
+
+    ## extract the exact order of tx labels
+    txOrder <- with(layer_data(p_model, i = 6),label[order(y)])
+
+    p_box <- plotTxExpression(norm.counts = preppedData$norm.counts,
+                              geneID = geneID,
+                              gene2symbol = preppedData$gene2symbol,
+                              productivity = preppedData$productivity,
+                              txOrder = txOrder,
+                              meta = preppedData$meta,
+                              labels = c("N2" = "N2","mrg1" = bquote("mrg-1"^{"-/-"})))
+
+    p_tx <- plotDTU(tx_exp_prod = preppedData$tx_exp_prod,
+                    highlight_genes = geneID,
+                    isGeneID = TRUE,
+                    gene2symbol = preppedData$gene2symbol,
+                    title = bquote("N2 vs mrg-1"^{"-/-"}))
+
+    p_gene <- plotDGE(gene_exp = preppedData$gene_exp,
+                      highlight_genes = geneID,
+                      isGeneID=TRUE,
+                      gene2symbol = preppedData$gene2symbol,
+                      title = bquote("N2 vs mrg-1"^{"-/-"}))
+    
+    
+    p_summary <- summaryPlot(geneID = geneID,
+                   productivity = preppedData$productivity,
+                   gtf = preppedData$gtf,
+                   asEvents = preppedData$asEvents,
+                   tx2gene = preppedData$tx2gene,
+                   norm.counts = preppedData$norm.counts,
+                   gene2symbol = preppedData$gene2symbol,
+                   filterAsEvent = NULL,
+                   isGeneID = TRUE,
+                   meta = preppedData$meta,
+                   tx_exp_prod = preppedData$tx_exp_prod,
+                   gene_exp = preppedData$gene_exp
+                   )
+
+    return(list(geneID = geneID,
+                geneName = geneName,
+                # txList = txList,
+                # txOrder = txOrder,
+                p_model = p_model,
+                p_box = p_box,
+                p_tx = p_tx,
+                p_gene = p_gene,
+                p_summary = p_summary
+                ))
+})
+
+
+# summaryPlot(geneID = "che-13",
+#             productivity = productivity,
+#             gtf = gtf,
+#             asEvents = asEvents,
+#             tx2gene = tx2gene,
+#             norm.counts = norm.counts,
+#             gene2symbol = gene2symbol,
+#             filterAsEvent = NULL,
+#             isGeneID = FALSE,
+#             meta = meta,
+#             tx_exp_prod = tx_exp_prod,
+#             gene_exp = gene_exp,
+#             # filename = file.path(projectDir,paste0(geneID,"_flairDiffSpliceSummary.pdf"))
+# )
+
+
+
+```
+
+Column {data-width=650}
+-----------------------------------------------------------------------
+
+### Differential Gene Expression
+
+```{r}
+# output$gene <- 
+  renderPlot({geneSelection()$p_gene + coord_flip()})
+# plotOutput("gene")
+```
+
+
+### Differential Transcript Expression
+
+```{r}
+# output$tx <- 
+  renderPlot({geneSelection()$p_tx + coord_flip() + theme(legend.position = "bottom")})
+# plotOutput("tx")
+```
+
+Column {data-width=350}
+-----------------------------------------------------------------------
+
+### Gene Model
+
+```{r}
+# output$model <- 
+    renderPlot({
+    geneSelection()$p_model
+    })
+
+# plotOutput("model")
+```
+
+
+### Transcript Usage
+
+```{r}
+# output$box <- 
+    renderPlot({geneSelection()$p_box})
+# plotOutput("box")
+```
+
+Summarized Figure (Aggregate View) 
+=======================================================================
+
+Column {data-width=500 data-height=800}
+-----------------------------------------------------------------------
+
+#### Figure
+
+```{r }
+# output$box <- 
+    renderPlot({geneSelection()$p_summary})
+# plotOutput("box")
+```
+
+Result Tables {data-orientation=column vertical_layout=scroll}
+=======================================================================
+
+Column {data-height=200}
+-----------------------------------------------------------------------
+
+#### Alternative Splicing Results 
+
+```{r}
+DT::renderDataTable({
+  
+  selectedGeneID <- if(!is.null(input$selectedGeneID)) {
+    na.omit(preppedData$asEvents)$gene_name %in% input$selectedGeneID
+  } else {
+    TRUE
+  }
+  
+  DT::datatable(na.omit(preppedData$asEvents)[grepl("exclusion",feature_id) & selectedGeneID,
+                                     c("gene_id","event","coordinate",
+                                       "lr","pvalue","adj_pvalue","gene_name")][
+                                         order(adj_pvalue,decreasing = FALSE)], 
+                options = list(
+                  pageLength = 10
+                  ),
+                rownames = FALSE)
+})
+```
+
+#### Differential Gene Expression
+
+```{r}
+DT::renderDataTable({
+  
+  selectedGeneID <- if(!is.null(input$selectedGeneID)) {
+    preppedData$gene_exp$gene_name %in% input$selectedGeneID
+  } else {
+    TRUE
+  }
+  
+  DT::datatable(preppedData$gene_exp[selectedGeneID][
+                                         order(padj,decreasing = FALSE)], 
+                options = list(
+                  pageLength = 10
+                  ),rownames = FALSE)
+})
+```
+
+#### Differential Transcript Expression
+
+```{r}
+DT::renderDataTable({
+  
+  selectedGeneID <- if(!is.null(input$selectedGeneID)) {
+    preppedData$tx_exp_prod$gene_name %in% input$selectedGeneID
+  } else {
+    TRUE
+  }
+  
+  DT::datatable(preppedData$tx_exp_prod[selectedGeneID,
+                                        c("gene_id","feature_id","log2FoldChange",
+                                          "lr","pvalue","padj","gene_name",
+                                          "productivity")][
+                                         order(padj,decreasing = FALSE)], 
+                options = list(
+                  pageLength = 10
+                  ),rownames = FALSE)
+})
+```
