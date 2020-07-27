@@ -25,3 +25,32 @@ with an additional overall gene filter at shorthand.
 ## Installation
 
 
+You may install the package as follows:
+```bash
+git clone https://github.com/alexg9010/flairExploreR.git
+cd flairExplorer
+```
+
+### Managing Dependencies
+
+This package depends on the [flair pipeline](https://github.com/BrooksLabUCSC/flair), which is imported as submodule when you run the above command. To run the pipeline you need to install its dependencies, I recommend using conda for this. 
+
+#### flair 
+
+You may install the dependencies of the flair pipeline via conda, 
+flair ships a conda environment file, that can be found at `./lib/flair/misc/flair_conda_env.yaml`
+
+Assuming you are in the package folder, you can create a local conda environment in the project folder:    
+```bash
+conda env create -f lib/flair/misc/flair_conda_env.yaml -p lib/flair/conda-env
+ln -s lib/flair/conda-env flair-env 
+```
+
+#### flairExplorer dashboard
+
+The dashboard is writtin in R and requires some more dependencies, but these can also be installed with conda:
+```bash
+conda env create -f misc/flairExploreR_conda_env.yaml -p misc/conda-env
+ln -s misc/conda-env flairExplorer-env
+```
+
