@@ -1,0 +1,21 @@
+name: flairExploreR
+channels:
+  - bioconda
+  - conda
+  - Quantopian
+  - conda-forge
+  - r
+dependencies:
+  - R
+  - r-ggplot2
+  - r-ggrepel
+  - r-flexdashboard
+  - r-shiny  
+  - r-data.table  
+  - r-reshape2 
+  - r-patchwork 
+  - bioconductor-deseq2
+  - bioconductor-genomicranges
+  - bioconductor-rtracklayer
+  - bioconductor-ggbio
+
