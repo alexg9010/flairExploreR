@@ -91,22 +91,46 @@ selectInput("selectedGeneID", label = "Filter tables for Genes of Interest:",
 # checkboxInput(inputId, label, value = FALSE, width = NULL)
 ```
 
+#### Filter to show only selected Productivity: 
+
+```{r}
+# Filter Productivity
+checkboxGroupInput("filterProductivity", 
+                   label = "Filter Productivity", 
+                   choices = list(
+                     "productive transcript" = "PRO", 
+                     "premature termination codon" = "PTC", 
+                     "no start codon" = "NGO", 
+                     "start but no stop codon" = "NST"
+                     ),
+                   selected = c("PRO","PTC","NST","NGO"))
+```
+
+
 Summarized Figures (Panel View)
 =======================================================================
 
 ```{r define_plots, include=FALSE}
 
 geneSelection <- reactive({
-    
+
     geneID <- input$geneID
-    
+
     if(!geneID %in% preppedData$gene2symbol$gene_id) {
         geneID <- preppedData$gene2symbol[gene_name == geneID, gene_id]
-    } 
-        
+    }
+
     geneName <- preppedData$gene2symbol[geneID, gene_name]
+  
+    filterProductivity <- if(!is.null(input$filterProductivity)) {
+        preppedData$productivity$productivity %in% input$filterProductivity
+    } else {
+      TRUE
+    }
     
-    txList <- extractTXFeatures(productivity = preppedData$productivity,
+    filteredProductivity <- preppedData$productivity[filterProductivity,]
+    
+    txList <- extractTXFeatures(productivity = filteredProductivity,
                                     gtf = preppedData$gtf,
                                     geneID = geneID)
     
@@ -121,7 +145,7 @@ geneSelection <- reactive({
     p_box <- plotTxExpression(norm.counts = preppedData$norm.counts,
                               geneID = geneID,
                               gene2symbol = preppedData$gene2symbol,
-                              productivity = preppedData$productivity,
+                              productivity = filteredProductivity,
                               txOrder = txOrder,
                               meta = preppedData$meta,
                               labels = c("N2" = "N2","mrg1" = bquote("mrg-1"^{"-/-"})))
@@ -140,7 +164,7 @@ geneSelection <- reactive({
     
     
     p_summary <- summaryPlot(geneID = geneID,
-                   productivity = preppedData$productivity,
+                   productivity = filteredProductivity,
                    gtf = preppedData$gtf,
                    asEvents = preppedData$asEvents,
                    tx2gene = preppedData$tx2gene,
@@ -236,7 +260,7 @@ Column {data-width=500 data-height=800}
 
 #### Figure
 
-```{r }
+```{r ,fig.width=5, fig.height= 8}
 # output$box <- 
     renderPlot({geneSelection()$p_summary})
 # plotOutput("box")

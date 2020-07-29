@@ -62,6 +62,7 @@ extractTXFeatures <- function(productivity, gtf, geneID) {
     }, exons = geneFeaturesList, cds = cdsGRL, utr = utrGRL))
     
     names(txList) <- sprintf("%s",substr(names(txList) ,0,13))
+    names(txList) <- make.unique(names(txList),sep = "-")
     
     return(txList)
     
@@ -110,9 +111,9 @@ plotGeneModel <- function(txList,geneID, asEvents=NULL, tx2gene) {
 
         p_model <- p_model +
             ggplot2::geom_rect(data = asFeatures, aes(xmin = start,
-                                                                     xmax = end,
-                                                                     ymin = -Inf,
-                                                                     ymax = Inf, fill = event),
+                                                      xmax = end,
+                                                      ymin = -Inf,
+                                                      ymax = Inf, fill = event),
                                alpha=0.1,show.legend = FALSE)
 
         if(nrow(asFeatures[event == "ir"])>=1) {
@@ -157,18 +158,17 @@ plotTxExpression <- function(norm.counts,geneID,gene2symbol,productivity,txOrder
     
     txIds <- productivity[gene_id == geneID #& productivity %in% c("PTC","PRO")
                           ,transcript_id]
-    if(length(txIds) == 1) {
-        expressionLevels <- reshape2::melt(t(norm.counts[txIds,]))
-        expressionLevels$Var1 <- txIds
-    } else {
-        expressionLevels <- reshape2::melt(norm.counts[txIds,])
-    }
-    setnames(expressionLevels, c("Var1","Var2"),c("tx_gene_id","sample"))
-    expressionLevels <- cbind(expressionLevels,meta[expressionLevels$sample,c("group","batch")])
-    expressionLevels$transcript_id <- productivity[match(txIds,transcript_id),isoform_id]
-    expressionLevels$transcript_id_labels <- factor(sprintf("%s",substr(expressionLevels$transcript_id ,0,13)),
-                                                    levels = txOrder)
+    txIds <- txIds[txIds %in% row.names(norm.counts)]
     
+    expressionTable <- as.data.table(norm.counts[txIds,],keep.rownames = TRUE)
+    expressionTable$transcript_id <- productivity[match(txIds,transcript_id),isoform_id]
+    expressionTable$transcript_id_labels <- factor(
+        make.unique(sprintf("%s",substr(expressionTable$transcript_id ,0,13)),sep = "-"),
+        levels = txOrder)
+    
+    expressionLevels <- data.table::melt(expressionTable)
+    setnames(expressionLevels, c("rn","variable"),c("tx_gene_id","sample"))
+    expressionLevels <- cbind(expressionLevels,meta[expressionLevels$sample,c("group","batch")])
     
     # prod <- productivity[match(txIds,transcript_id), productivity]
     # textColor <- sapply(prod,switch, "PRO" = "grey","PTC" = "orange","NGO" = "black","NST" = "black")
@@ -278,6 +278,7 @@ summaryPlot <- function(geneID,productivity,gtf,
                         tx_exp_prod, 
                         isGeneID = FALSE, 
                         filterAsEvent = "ir",
+                        filterProductivity = NULL,
                         gene_exp ,filename = NULL) {
     
     require(ggplot2)
@@ -288,6 +289,11 @@ summaryPlot <- function(geneID,productivity,gtf,
     } 
     
     geneName <- gene2symbol[geneID, gene_name]
+    
+    if(!is.null(filterProductivity) & 
+       all(filterProductivity %in% c("PRO","PTC","NST","NGO"))) {
+        productivity <- productivity[productivity %in% filterProductivity,]
+    }
     
     txList <- extractTXFeatures(productivity = productivity,
                                 gtf = gtf,
