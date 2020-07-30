@@ -88,7 +88,6 @@ selectInput("selectedGeneID", label = "Filter tables for Genes of Interest:",
             multiple = TRUE,
             selectize = TRUE)
 
-# checkboxInput(inputId, label, value = FALSE, width = NULL)
 ```
 
 #### Filter to show only selected Productivity: 
@@ -190,21 +189,19 @@ geneSelection <- reactive({
 })
 
 
-# summaryPlot(geneID = "che-13",
-#             productivity = productivity,
-#             gtf = gtf,
-#             asEvents = asEvents,
-#             tx2gene = tx2gene,
-#             norm.counts = norm.counts,
-#             gene2symbol = gene2symbol,
-#             filterAsEvent = NULL,
-#             isGeneID = FALSE,
-#             meta = meta,
-#             tx_exp_prod = tx_exp_prod,
-#             gene_exp = gene_exp,
-#             # filename = file.path(projectDir,paste0(geneID,"_flairDiffSpliceSummary.pdf"))
-# )
-
+# summaryPlot(geneID = "adr-1",
+#                    productivity = preppedData$productivity,
+#                    gtf = preppedData$gtf,
+#                    asEvents = preppedData$asEvents,
+#                    tx2gene = preppedData$tx2gene,
+#                    norm.counts = preppedData$norm.counts,
+#                    gene2symbol = preppedData$gene2symbol,
+#                    filterAsEvent = NULL,
+#                    isGeneID = FALSE,
+#                    meta = preppedData$meta,
+#                    tx_exp_prod = preppedData$tx_exp_prod,
+#                    gene_exp = preppedData$gene_exp
+#                    )
 
 
 ```
