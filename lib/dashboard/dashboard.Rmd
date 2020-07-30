@@ -121,8 +121,10 @@ geneSelection <- reactive({
 
     geneName <- preppedData$gene2symbol[geneID, gene_name]
   
-    filterProductivity <- if(!is.null(input$filterProductivity)) {
-        preppedData$productivity$productivity %in% input$filterProductivity
+    # filterProductivity <- c("PRO","PTC","NST","NGO")
+    filterProductivity <- input$filterProductivity
+    filterProductivity <- if(!is.null(filterProductivity)) {
+        preppedData$productivity$productivity %in% filterProductivity
     } else {
       TRUE
     }
