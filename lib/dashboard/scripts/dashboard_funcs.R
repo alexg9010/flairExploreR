@@ -34,7 +34,9 @@ extractTXFeatures <- function(productivity, gtf, geneID) {
     utrGRL <- S4Vectors::mendoapply(FUN = function(x,y) {z = setdiff(x,y); z$type = "utr"; return(z) }, 
                          transcriptGRL,cdsGRL)
     
-    geneFeatures <- gtf[gene_id == geneID & type != "transcript"]
+    geneFeatures <- gtf[gene_id == geneID & 
+                            type != "transcript" & 
+                            transcript_id %in% geneFeaturesDetailed$isoform_id]
     geneFeatures <- merge(geneFeatures,productivity[,c("isoform_id","productivity")],
                           by.x="transcript_id",
                           by.y="isoform_id")
