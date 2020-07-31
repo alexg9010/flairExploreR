@@ -370,12 +370,12 @@ Column {data-height=200}
 DT::renderDataTable({
   
   selectedGeneID <- if(!is.null(input$selectedGeneID)) {
-    na.omit(preppedData$asEvents)$gene_name %in% input$selectedGeneID
+    preppedData$asEvents$gene_name %in% input$selectedGeneID
   } else {
     TRUE
   }
   
-  DT::datatable(na.omit(preppedData$asEvents)[grepl("exclusion",feature_id) & selectedGeneID,
+  DT::datatable(preppedData$asEvents[grepl("exclusion",feature_id) & selectedGeneID,
                                      c("gene_id","event","coordinate",
                                        "lr","pvalue","adj_pvalue","gene_name")][
                                          order(adj_pvalue,decreasing = FALSE)], 
