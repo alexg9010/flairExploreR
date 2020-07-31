@@ -53,7 +53,7 @@ suppressPackageStartupMessages({
 ```
 
 
-Sidebar {.sidebar data-width=150}
+Sidebar {.sidebar data-width=250}
 =====================================
 
 #### Create a figure for the selected Gene:
@@ -107,7 +107,7 @@ selectInput("selectedGeneID", label = "Filter tables for Genes of Interest:",
 ```{r}
 # Filter Productivity
 checkboxGroupInput("filterProductivity", 
-                   label = "Filter Productivity", 
+                   label = "Select Productivity", 
                    choices = list(
                      "productive transcript" = "PRO", 
                      "premature termination codon" = "PTC", 
@@ -115,6 +115,23 @@ checkboxGroupInput("filterProductivity",
                      "start but no stop codon" = "NST"
                      ),
                    selected = c("PRO","PTC","NST","NGO"))
+```
+
+### Filter to show only selected Alternative Splice Types: 
+
+```{r}
+# Filter ASEvents
+checkboxGroupInput("filterASEvents", 
+                   label = "Select Alternative Splice Types", 
+                   choices = list(
+                     "retained intron" = "ir",
+                     "skipped exon" = "es",
+                     "alt 3' splice site" = "alt3",
+                     "alt 5' splice site" = "alt5"
+                   ),
+                   selected = c("ir","es","alt3","alt5")
+                   )
+
 ```
 
 
