@@ -163,7 +163,13 @@ plotTxExpression <- function(norm.counts,geneID,gene2symbol,productivity,txOrder
                           ,transcript_id]
     txIds <- txIds[txIds %in% row.names(norm.counts)]
     
-    expressionTable <- as.data.table(norm.counts[txIds,],keep.rownames = TRUE)
+    if(length(txIds) == 1) {
+        expressionTable <- as.data.table(t(norm.counts[txIds,]),keep.rownames = TRUE)
+        expressionTable[, rn := txIds]
+    } else {
+        expressionTable <- as.data.table(norm.counts[txIds,],keep.rownames = TRUE)
+    }
+    
     expressionTable$transcript_id <- productivity[match(txIds,transcript_id),isoform_id]
     expressionTable$transcript_id_labels <- factor(
         make.unique(sprintf("%s",substr(expressionTable$transcript_id ,0,13)),sep = "-"),
