@@ -16,7 +16,7 @@
 #' @examples
 extractTXFeatures <- function(productivity, gtf, geneID) {
     
-    library(GenomicRanges)    
+    require(GenomicRanges)
     
     # skip NGO and NST as they are most likely not translated at all
     geneFeaturesDetailed <- productivity[gene_id == geneID #& productivity %in% c("PTC","PRO")
@@ -496,7 +496,7 @@ prepNormCounts <- function(diffExpFolder) {
                                full.names = TRUE)
     
     require(data.table)
-    library(DESeq2)
+    require(DESeq2)
     
     tx_counts <- fread(txCountsFile)
     tx_counts[,V1 := NULL]
