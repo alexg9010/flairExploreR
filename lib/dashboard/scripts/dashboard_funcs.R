@@ -31,7 +31,7 @@ extractTXFeatures <- function(productivity, gtf, geneID) {
     transcriptGRL <- split(GenomicRanges::makeGRangesFromDataFrame(transcript,keep.extra.columns = TRUE),
                            f = transcript$isoform_id)
     
-    utrGRL <- mendoapply(FUN = function(x,y) {z = setdiff(x,y); z$type = "utr"; return(z) }, 
+    utrGRL <- S4Vectors::mendoapply(FUN = function(x,y) {z = setdiff(x,y); z$type = "utr"; return(z) }, 
                          transcriptGRL,cdsGRL)
     
     geneFeatures <- gtf[gene_id == geneID & type != "transcript"]

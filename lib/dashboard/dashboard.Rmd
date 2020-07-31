@@ -38,6 +38,18 @@ if(!file.exists(file.path(dataDir,"preppedData.RDS"))) {
 }
 
 # attach(preppedData)
+
+suppressPackageStartupMessages({
+  library(data.table)
+  library(GenomicRanges)
+  library(ggplot2)
+  library(ggbio)
+  library(reshape2)
+  library(ggrepel)
+  library(DESeq2)
+  library(patchwork)
+})
+
 ```
 
 
