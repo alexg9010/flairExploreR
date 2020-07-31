@@ -142,6 +142,7 @@ Summarized Figures (Panel View)
 
 geneSelection <- reactive({
 
+    ### filter geneID
     geneID <- input$geneID
 
     if(!geneID %in% preppedData$gene2symbol$gene_id) {
@@ -149,7 +150,14 @@ geneSelection <- reactive({
     }
 
     geneName <- preppedData$gene2symbol[geneID, gene_name]
+    
+    return(list(geneID = geneID,geneName = geneName))
+    
+})
+
+filteredProductivity <- reactive({
   
+    ### filter productivity
     # filterProductivity <- c("PRO","PTC","NST","NGO")
     filterProductivity <- input$filterProductivity
     filterProductivity <- if(!is.null(filterProductivity)) {
@@ -157,28 +165,71 @@ geneSelection <- reactive({
     } else {
       TRUE
     }
-    
     filteredProductivity <- preppedData$productivity[filterProductivity,]
     
-    txList <- extractTXFeatures(productivity = filteredProductivity,
+    return(filteredProductivity)
+    
+})
+
+filteredAsEvents <- reactive({
+  
+    ### filter as types
+    # filterProductivity <- c("PRO","PTC","NST","NGO")
+    filterASEvents <- input$filterASEvents
+    filterASEvents <- if(!is.null(filterASEvents)) {
+        preppedData$asEvents$event %in% filterASEvents
+    } else {
+      TRUE
+    }
+    filteredAsEvents <- preppedData$asEvents[filterASEvents,]
+    
+    return(filteredAsEvents)
+    
+})
+    
+
+geneModel <- reactive({
+  
+    geneID <- geneSelection()$geneID
+  
+    ### generate figures
+    txList <- extractTXFeatures(productivity = filteredProductivity(),
                                     gtf = preppedData$gtf,
                                     geneID = geneID)
     
     p_model <- plotGeneModel(txList = txList,
-                             asEvents = preppedData$asEvents,
+                             asEvents = filteredAsEvents(),
                              geneID = geneID,
                              tx2gene = preppedData$tx2gene)
 
     ## extract the exact order of tx labels
     txOrder <- with(layer_data(p_model, i = 6),label[order(y)])
+    
+    return(list(p_model = p_model, txOrder = txOrder))
+    
+})
 
-    p_box <- plotTxExpression(norm.counts = preppedData$norm.counts,
+boxplot <- reactive({
+  
+  geneID <- geneSelection()$geneID
+  txOrder <- geneModel()$txOrder
+  
+  p_box <- plotTxExpression(norm.counts = preppedData$norm.counts,
                               geneID = geneID,
                               gene2symbol = preppedData$gene2symbol,
-                              productivity = filteredProductivity,
+                              productivity = filteredProductivity(),
                               txOrder = txOrder,
                               meta = preppedData$meta,
                               labels = c("N2" = "N2","mrg1" = bquote("mrg-1"^{"-/-"})))
+  
+      return(list(p_box = p_box))
+  
+})
+
+
+volcanoPlots <- reactive({
+  
+    geneID <- geneSelection()$geneID
 
     p_tx <- plotDTU(tx_exp_prod = preppedData$tx_exp_prod,
                     highlight_genes = geneID,
@@ -192,11 +243,20 @@ geneSelection <- reactive({
                       gene2symbol = preppedData$gene2symbol,
                       title = bquote("N2 vs mrg-1"^{"-/-"}))
     
+    return(list(p_tx = p_tx,
+                p_gene = p_gene))
     
+})
+  
+
+summaryFigure <- reactive({
+  
+    geneID <- geneSelection()$geneID
+  
     p_summary <- summaryPlot(geneID = geneID,
-                   productivity = filteredProductivity,
+                   productivity = filteredProductivity(),
                    gtf = preppedData$gtf,
-                   asEvents = preppedData$asEvents,
+                   asEvents = filteredAsEvents(),
                    tx2gene = preppedData$tx2gene,
                    norm.counts = preppedData$norm.counts,
                    gene2symbol = preppedData$gene2symbol,
@@ -206,18 +266,12 @@ geneSelection <- reactive({
                    tx_exp_prod = preppedData$tx_exp_prod,
                    gene_exp = preppedData$gene_exp
                    )
-
-    return(list(geneID = geneID,
-                geneName = geneName,
-                # txList = txList,
-                # txOrder = txOrder,
-                p_model = p_model,
-                p_box = p_box,
-                p_tx = p_tx,
-                p_gene = p_gene,
-                p_summary = p_summary
-                ))
+    
+    return(list(p_summary = p_summary))
+    
 })
+
+
 
 
 # summaryPlot(geneID = "adr-1",
@@ -244,7 +298,9 @@ Column {data-width=650}
 
 ```{r}
 # output$gene <- 
-  renderPlot({geneSelection()$p_gene + coord_flip()})
+  renderPlot({
+    volcanoPlots()$p_gene + coord_flip()
+    })
 # plotOutput("gene")
 ```
 
@@ -253,7 +309,9 @@ Column {data-width=650}
 
 ```{r}
 # output$tx <- 
-  renderPlot({geneSelection()$p_tx + coord_flip() + theme(legend.position = "bottom")})
+  renderPlot({
+    volcanoPlots()$p_tx + coord_flip() + theme(legend.position = "bottom")
+    })
 # plotOutput("tx")
 ```
 
@@ -265,7 +323,7 @@ Column {data-width=350}
 ```{r}
 # output$model <- 
     renderPlot({
-    geneSelection()$p_model
+    geneModel()$p_model
     })
 
 # plotOutput("model")
@@ -276,7 +334,9 @@ Column {data-width=350}
 
 ```{r}
 # output$box <- 
-    renderPlot({geneSelection()$p_box})
+    renderPlot({
+      boxplot()$p_box
+      })
 # plotOutput("box")
 ```
 
@@ -290,7 +350,9 @@ Column {data-width=500 data-height=800}
 
 ```{r ,fig.width=5, fig.height= 8}
 # output$box <- 
-    renderPlot({geneSelection()$p_summary})
+    renderPlot({
+      summaryFigure()$p_summary
+      })
 # plotOutput("box")
 ```
 
