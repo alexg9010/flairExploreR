@@ -11,16 +11,18 @@ runtime: shiny
 library(flexdashboard)
 library(data.table)
 setDTthreads(8)
-library(ggplot2)
 library(shiny)
-projectDir="/home/agosdsc/projects/mrg1_nanopore/as_detection_flair/"
+projectDir="/home/agosdsc/projects/flairExploreR/lib/dashboard/"
 dataDir <- "/data/local/agosdsc/projects/mrg1_nanopore/flair_analyzed/pooled_hom_mrg1_v3/"
 outDir=file.path(dataDir,"diffSplice_noShortReads/")
 gtfFile_Ref="/fast/AG_Tursun/Base/Genome_Annotation/ce11/Ensembl/Caenorhabditis_elegans.WBcel235.97.gtf"
 gtfFile <- file.path(dataDir,"collapse","all_samples_flair.isoforms.gtf")
 
-source(file.path("./","scripts","dashboard_funcs.R"))
-if(!file.exists(file.path(dataDir,"preppedData.RDS"))) {
+# preppedDataFile <- file.path(dataDir,"preppedData.RDS")
+preppedDataFile <- file.path(projectDir,"data","preppedData.RDS")
+
+source(file.path(projectDir,"scripts","dashboard_funcs.R"))
+if(!file.exists(preppedDataFile)) {
     
     tx_prod_full_file <- file.path(dataDir,"productivity","productivity.bed")
     diffSpliceFolder <- file.path(dataDir,"diffSplice_noShortReads")
@@ -34,7 +36,7 @@ if(!file.exists(file.path(dataDir,"preppedData.RDS"))) {
                          dataDir = dataDir
                          )
 } else {
-    preppedData <- readRDS(file.path(dataDir,"preppedData.RDS"))
+    preppedData <- readRDS(preppedDataFile)
 }
 
 # attach(preppedData)
