@@ -108,40 +108,41 @@ plotGeneModel <- function(txList,geneID, asEvents=NULL, tx2gene) {
     if(! is.null(asEvents) ) {
 
         asFeatures <- na.omit(asEvents[gene_id == geneID & grepl("exclusion",feature_id)])
-
-        p_model <- p_model +
-            ggplot2::geom_rect(data = asFeatures, aes(xmin = start,
-                                                      xmax = end,
-                                                      ymin = -Inf,
-                                                      ymax = Inf, fill = event),
-                               alpha=0.1,show.legend = FALSE)
-
-        if(nrow(asFeatures[event == "ir"])>=1) {
+        
+        if(nrow(asFeatures)>=1 ) {
+        
             p_model <- p_model +
-                ggplot2::geom_rect(data = asFeatures[event == "ir"],
-                                   aes(xmin = start, xmax = end, ymin = -Inf, ymax = Inf, fill = "ir"),
-                                   alpha=0.1,fill="blue",show.legend = TRUE)
-        }
-        if(nrow(asFeatures[event == "es"])>=1) {
-            p_model <- p_model +
-                ggplot2::geom_rect(data = asFeatures[event == "es"],
-                                   aes(xmin = start, xmax = end, ymin = -Inf, ymax = Inf, fill = "es"),
-                                   alpha=0.1,fill="red",show.legend = TRUE) # +
+                ggplot2::geom_rect(data = asFeatures, 
+                                   aes(xmin = start, xmax = end, ymin = -Inf, ymax = Inf, fill = event),
+                                   alpha=0.1,show.legend = FALSE)
 
-        }
-        if(nrow(asFeatures[event == "alt3"])>=1) {
-            p_model <- p_model +
-                ggplot2::geom_rect(data = asFeatures[event == "alt3"],
-                                   aes(xmin = start, xmax = end, ymin = -Inf, ymax = Inf, fill = "alt3"),
-                                   alpha=0.1,fill="orange",show.legend = TRUE) # +
-
-        }
-        if(nrow(asFeatures[event == "alt5"])>=1) {
-            p_model <- p_model +
-                ggplot2::geom_rect(data = asFeatures[event == "alt5"],
-                                   aes(xmin = start, xmax = end, ymin = -Inf, ymax = Inf, fill = "alt5"),
-                                   alpha=0.1,fill="purple",show.legend = TRUE) # +
-
+            if(nrow(asFeatures[event == "ir"])>=1) {
+                p_model <- p_model +
+                    ggplot2::geom_rect(data = asFeatures[event == "ir"],
+                                       aes(xmin = start, xmax = end, ymin = -Inf, ymax = Inf, fill = "ir"),
+                                       alpha=0.1,fill="blue",show.legend = TRUE)
+            }
+            if(nrow(asFeatures[event == "es"])>=1) {
+                p_model <- p_model +
+                    ggplot2::geom_rect(data = asFeatures[event == "es"],
+                                       aes(xmin = start, xmax = end, ymin = -Inf, ymax = Inf, fill = "es"),
+                                       alpha=0.1,fill="red",show.legend = TRUE) # +
+    
+            }
+            if(nrow(asFeatures[event == "alt3"])>=1) {
+                p_model <- p_model +
+                    ggplot2::geom_rect(data = asFeatures[event == "alt3"],
+                                       aes(xmin = start, xmax = end, ymin = -Inf, ymax = Inf, fill = "alt3"),
+                                       alpha=0.1,fill="orange",show.legend = TRUE) # +
+    
+            }
+            if(nrow(asFeatures[event == "alt5"])>=1) {
+                p_model <- p_model +
+                    ggplot2::geom_rect(data = asFeatures[event == "alt5"],
+                                       aes(xmin = start, xmax = end, ymin = -Inf, ymax = Inf, fill = "alt5"),
+                                       alpha=0.1,fill="purple",show.legend = TRUE) # +
+    
+            }
         }
 
     }
