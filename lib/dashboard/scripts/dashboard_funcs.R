@@ -382,11 +382,11 @@ summaryPlot <- function(geneID,productivity,gtf,
     
 }
 
-summarizeDiffSplice <- function(asCountsFile, asStatsFile) {
+summarizeDiffSplice <- function(asCountsFile, asStatsFile, tx2gene) {
     
     
     ## resolve gene assignment of isoform_ids column
-    resolveIsoforms <- function(x) {
+    resolveIsoforms <- function(x,tx2gene) {
         sp = strsplit(x,",")
         gene_id = sapply(sp,function(sp) tx2gene[gsub(pattern="_.*",replacement="",sp),gene_id])
         tab = lapply(gene_id, table)
@@ -407,7 +407,7 @@ summarizeDiffSplice <- function(asCountsFile, asStatsFile) {
     
     asCounts <- fread(asCountsFile)
     setkey(asCounts, feature_id)
-    asCounts[, c("gene_id", "n_isoforms") := resolveIsoforms(isoform_ids)]
+    asCounts[, c("gene_id", "n_isoforms") := resolveIsoforms(isoform_ids,tx2gene)]
     asCounts[, isoform_ids := NULL]
     
     asStats <- fread(asStatsFile)
@@ -543,7 +543,7 @@ prepGene2Symbol <- function(ensemblGtfFile) {
     return(gene2symbol)
 }
 
-prepTx2Gene <- function(gtfData) {
+prepTx2Gene <- function(gtfData, gene2symbol) {
     
     tx2gene <- gtfData[type == "transcript",c("gene_id","transcript_id")]
     tx2gene[, tx_gene_id := sprintf("%s_%s",transcript_id,gene_id)]
@@ -554,7 +554,7 @@ prepTx2Gene <- function(gtfData) {
     
 }
 
-prepAsData <- function(diffSpliceFolder,gene2symbol) {
+prepAsData <- function(diffSpliceFolder,gene2symbol, tx2gene) {
     
     asListFiles <- list.files(path = file.path(diffSpliceFolder),
                               pattern = "\\..*.genesAssigned.tsv", 
@@ -572,7 +572,10 @@ prepAsData <- function(diffSpliceFolder,gene2symbol) {
                                    recursive = TRUE,
                                    full.names = TRUE) 
         
-        mapply(summarizeDiffSplice,asCountsFiles, asStatsFiles)
+        mapply(FUN = summarizeDiffSplice,
+               asCountsFiles, 
+               asStatsFiles, 
+               MoreArgs = list(tx2gene =tx2gene))
         
         asListFiles <- list.files(path = file.path(diffSpliceFolder),
                                   pattern = "\\..*.genesAssigned.tsv", 
@@ -650,11 +653,11 @@ prepData <- function(productivityBedFile,
     
     #### prepare tx2gene
     cat("#### prepare tx2gene\n")
-    tx2gene <- prepTx2Gene(gtfData)
+    tx2gene <- prepTx2Gene(gtfData, gene2symbol)
     
     #### prepare AS data
     cat("#### prepare AS data\n")
-    as_dt <- prepAsData(diffSpliceFolder, gene2symbol)
+    as_dt <- prepAsData(diffSpliceFolder, gene2symbol, tx2gene)
     
     #### prepare norm.counts and meta
     cat("#### prepare norm.counts and meta\n")
