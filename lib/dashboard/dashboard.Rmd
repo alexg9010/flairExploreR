@@ -28,7 +28,7 @@ if(!file.exists(preppedDataFile)) {
     diffSpliceFolder <- file.path(dataDir,"diffSplice_noShortReads")
     diffExpFolder <- file.path(dataDir,"diffExp_noShortReads")
     
-    preppedData <- prepData(productivityBedFile = tx_prod_full, 
+    preppedData <- prepData(productivityBedFile = tx_prod_full_file, 
                          flairGtfFile = gtfFile, 
                          ensemblGtfFile = gtfFile_Ref, 
                          diffSpliceFolder = diffSpliceFolder,
