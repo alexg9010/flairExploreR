@@ -598,10 +598,10 @@ prepTxProductivity <- function(diffExpFolder,tx2gene,
                                  full.names = TRUE)
     tx_exp <- fread(diuResultsFile)
     ### FIXME currently use my own colun labels, needs to be generalized
-    Case_1 <- names(tx_exp_prod)[which(tstrsplit(names(tx_exp_prod),"_")[[2]] %in% Case)[1]]
-    Control_1 <- names(tx_exp_prod)[which(tstrsplit(names(tx_exp_prod),"_")[[2]] %in% Control)[1]]
+    Case_1 <- names(tx_exp)[which(tstrsplit(names(tx_exp),"_")[[2]] %in% Case)[1]]
+    Control_1 <- names(tx_exp)[which(tstrsplit(names(tx_exp),"_")[[2]] %in% Control)[1]]
 
-    tx_exp_prod[,log2FoldChange := log2(.SD[,1]/.SD[,2]) , .SDcols = c(Case_1,Control_1)]
+    tx_exp[,log2FoldChange := log2(.SD[,1]/.SD[,2]) , .SDcols = c(Case_1,Control_1)]
     tx_exp[, gene_name := tx2gene[tx_exp$feature_id, gene_name, on = "tx_gene_id"]]
     setnames(tx_exp,"adj_pvalue","padj")
     tx_prod <- tx_productivity[,c("transcript_id","isoform_id", "gene_id" ,"productivity" )]
