@@ -12,7 +12,7 @@ library(flexdashboard)
 library(data.table)
 setDTthreads(8)
 library(shiny)
-projectDir="/home/agosdsc/projects/flairExploreR/lib/dashboard/"
+projectDir="."
 dataDir <- "/data/local/agosdsc/projects/mrg1_nanopore/flair_analyzed/pooled_hom_mrg1_v3/"
 outDir=file.path(dataDir,"diffSplice_noShortReads/")
 gtfFile_Ref="/fast/AG_Tursun/Base/Genome_Annotation/ce11/Ensembl/Caenorhabditis_elegans.WBcel235.97.gtf"
